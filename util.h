@@ -9,8 +9,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <time.h>
-
 #include "type.h"
+typedef unsigned int u32;
 
 int get_block(int dev, int blk, char *buf);
 int put_block(int dev, int blk, char *buf);

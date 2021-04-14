@@ -5,6 +5,7 @@
 #include "cd_ls_pwd.h"
 
 #include "globals.h"
+#include "type.h"
 
 int init()
 {
@@ -19,7 +20,7 @@ int init()
                 mip->dev = mip->ino = 0;
                 mip->refCount = 0;
                 mip->mounted = 0;
-                mip->mptr = 0;
+                mip->mntPtr = 0;
         }
         for (i = 0; i < NPROC; i++) {
                 p = &proc[i];
