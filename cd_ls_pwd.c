@@ -63,12 +63,54 @@ int ls(char *pathname)
 
 char *pwd(MINODE *wd)
 {
-        printf("pwd: READ HOW TO pwd in textbook!!!!\n");
-        if (wd == root) {
+        if (wd->ino == root->ino) {
                 printf("/\n");
                 return "";
         }
+        else{
+                printf("HEY");
+           rpwd(wd);
+           printf("\n");
+        }
 }
+
+int rpwd(MINODE *wd){
+    char buf[BLKSIZE];
+    DIR *temp;
+    char dirname[BLKSIZE];
+    int my_ino = 0;
+    int parent = 0;
+    MINODE *pip;
+    get_block(wd->dev, wd->INODE.i_block[0], buf);
+    temp = (DIR *)buf;
+    char *cp = buf;
+    while(cp < buf + BLKSIZE){
+        if(strcmp(temp->name, "..") == 0){
+            parent = temp->inode;
+            break;
+        }
+        if(strcmp(temp->name, ".") == 0){
+            my_ino = temp->inode;
+        }
+        cp =  temp->rec_len + (char *)cp; //advancing cp
+        temp = (DIR *) cp;
+    }
+    pip = iget(dev, parent);
+    get_block(dev, pip->INODE.i_block[0], buf);
+    temp = (DIR *)buf; //storing temp into buff
+    cp = buf;
+    while(cp < buf + BLKSIZE){
+        strcpy(dirname, temp->name);
+        dirname[temp->name_len] = 0;
+        if(my_ino == temp->inode){
+            break;
+        }
+        cp = (char *)cp + temp->rec_len; //advancing cp
+        temp = (DIR *) cp;
+    }
+    rpwd(pip);
+}
+
 
 int is_dir(INODE *ino)
 {

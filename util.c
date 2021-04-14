@@ -12,13 +12,9 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
-
+#include "globals.h"
 MINODE minode[NMINODE];
-MINODE *root;
 PROC proc[NPROC], *running;
-char gpath[256];
-char *name[64]; // token string pointers
-int n, fd, dev;
 char line[256];
 char cmd[64];
 char pathname[256];
