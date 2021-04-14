@@ -3,6 +3,8 @@ typedef unsigned char u8;
 typedef unsigned short u16;
 typedef unsigned int u32;
 
+#include <ext2fs/ext2_fs.h>
+
 typedef struct ext2_super_block SUPER;
 typedef struct ext2_group_desc GD;
 typedef struct ext2_inode INODE;
