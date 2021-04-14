@@ -5,14 +5,28 @@
 int chdir(char *pathname)
 {
         printf("chdir %s\n", pathname);
-        printf("under construction READ textbook HOW TO chdir!!!!\n");
-        // READ Chapter 11.7.3 HOW TO chdir
+        int ino = getino(pathname);
+        if (ino == 0 ) {
+                printf("chdir: path does not exist.\n");
+                return -1;
+        }
+
+        MINODE *mip = iget(dev, ino);
+        if (is_dir(&mip->INODE) == 0) {
+                printf("chdir: not a directory.\n");
+                return -1;
+        }
+
+        iput(running->cwd);
+
+        running->cwd = mip;
+        return 0;
 }
 
 int ls_file(MINODE *mip, char *name)
 {
-        printf("ls_file: to be done: READ textbook for HOW TO!!!!\n");
-        // READ Chapter 11.7.3 HOW TO ls
+        const long atime = mip->INODE.i_atime;
+        printf("%d %d %s %s\n", mip->INODE.i_mode, mip->INODE.i_size, ctime(&atime), name);
 }
 
 int ls_dir(MINODE *mip)
@@ -32,8 +46,8 @@ int ls_dir(MINODE *mip)
                 strncpy(temp, dp->name, dp->name_len);
                 temp[dp->name_len] = 0;
 
-                printf("[%d %s]  ", dp->inode, temp); // print [inode# name]
-
+                //printf("[%d %s]  ", dp->inode, temp); // print [inode# name]
+                ls_file(mip, temp);
                 cp += dp->rec_len;
                 dp = (DIR *)cp;
         }
@@ -54,4 +68,14 @@ char *pwd(MINODE *wd)
                 printf("/\n");
                 return "";
         }
+}
+
+int is_dir(INODE *ino)
+{
+        int mode = ino->i_mode;
+        mode = mode >> 12; // Shift 12 bits right.
+        if (mode == DIR_MODE) {
+                return 1;
+        }
+        return 0;
 }

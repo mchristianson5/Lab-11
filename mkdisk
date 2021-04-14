@@ -5,5 +5,3 @@ sudo mount diskimage /mnt
 (cd /mnt; rm -r *; mkdir dir1 dir2; mkdir dir1/dir3; touch file1 file2; ls -l)
 sudo umount /mnt
 
-mk
-a.out

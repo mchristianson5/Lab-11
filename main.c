@@ -81,6 +81,7 @@ int main(int argc, char *argv[])
         ninodes = sp->s_inodes_count;
         nblocks = sp->s_blocks_count;
 
+
         get_block(dev, 2, buf);
         gp = (GD *)buf;
 
@@ -99,6 +100,10 @@ int main(int argc, char *argv[])
         running->cwd = iget(dev, 2);
         printf("root refCount = %d\n", root->refCount);
 
+        for (int i = 1; i < NPROC; i++) {
+                proc[i].cwd = iget(dev, 2);
+        }
+
         while (1) {
                 printf("input command : [ls|cd|pwd|quit] ");
                 fgets(line, 128, stdin);
@@ -110,6 +115,9 @@ int main(int argc, char *argv[])
 
                 sscanf(line, "%s %s", cmd, pathname);
                 printf("cmd=%s pathname=%s\n", cmd, pathname);
+
+                if (strcmp(pathname, "") == 0)
+                        strcpy(pathname, "/");
 
                 if (strcmp(cmd, "ls") == 0)
                         ls(pathname);
