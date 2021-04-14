@@ -1,18 +1,17 @@
 /*********** util.c file ****************/
 
+#include "util.h"
+#include "type.h"
 #include <ext2fs/ext2_fs.h>
 #include <fcntl.h>
 #include <libgen.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
-#include "type.h"
-#include "util.h"
-#include <unistd.h>
 #include <time.h>
-#include <stdint.h>
-
+#include <unistd.h>
 
 MINODE minode[NMINODE];
 MINODE *root;
@@ -28,13 +27,9 @@ char gline[256]; // holds token strings, each pointed by a name[i]
 int nname;       // number of token strings
 int iblock;
 
-
-
-
-int get_block(int dev, int blk, char *buf)
-{
-        lseek(dev, (long)blk * BLKSIZE, 0);
-        read(dev, buf, BLKSIZE);
+int get_block(int dev, int blk, char *buf) {
+  lseek(dev, (long)blk * BLKSIZE, 0);
+  read(dev, buf, BLKSIZE);
 }
 int put_block(int dev, int blk, char *buf) {
   lseek(dev, (long)blk * BLKSIZE, 0);
@@ -72,9 +67,9 @@ MINODE *iget(int dev, int ino) {
   }
 
   // needed INODE=(dev,ino) not in memory
-  for(i = 0; i < NMINODE; i++){
+  for (i = 0; i < NMINODE; i++) {
     mip = &minode[i];
-    if(mip->refCount == 0){
+    if (mip->refCount == 0) {
       mip->refCount = 1;
       break;
     }
@@ -184,11 +179,59 @@ int findmyname(MINODE *parent, u32 myino, char *myname) {
   // WRITE YOUR code here:
   // search parent's data block for myino;
   // copy its name STRING to myname[ ];
-
+  int i = 0;
+  char buf[1024];
+  INODE inode = parent->INODE;
+  char *current;
+  DIR *directory;
+  u32 block;
+  if (inode.i_mode == 16877) {
+    for (i; i < 12; i++) {
+      block = inode.i_block[i];
+      if (block != 0) {
+        get_block(parent->dev, block, buf);
+        current = buf; // copying buf into current
+        directory = (DIR *)buf;
+        while (current < &buf[BLKSIZE]) {
+          if (directory->inode == myino) {
+            // coppying name if correct one we want
+            strcpy(myname, directory->name);
+            printf("Found.\n");
+            return 0;
+          }
+          // add current
+          current += directory->rec_len;
+          directory = (DIR *)current;
+        }
+      } else {
+        printf("Block is 0\n");
+      }
+    }
+    return 0;
+  }
+  printf("No directory found\n");
+  return 0;
 }
 
 int findino(MINODE *mip, u32 *myino) // myino = ino of . return ino of ..
 {
   // mip->a DIR minode. Write YOUR code to get mino=ino of .
   //                                         return ino of ..
+  char buf[BLKSIZE];
+  get_block(mip->dev, mip->INODE.i_block[0], buf);
+  DIR *temp;
+  char *current = buf;
+  temp = (DIR *)buf;
+  while (current < buf + BLKSIZE) {
+    if (strcmp(temp->name, "..") == 0) {
+      return temp->inode; // returning ..
+    }
+    if (strcmp(temp->name, ".") == 0) {
+      myino = temp->inode; // making myino = .
+    }
+    //advancing current
+    current =  temp->rec_len + (char *)current;
+    temp = (DIR *)current;
+  }
+  return 0;
 }
