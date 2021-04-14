@@ -1,10 +1,10 @@
 /*************** type.h file ************************/
 #ifndef TYPE_H
 #define TYPE_H
+#include <ext2fs/ext2_fs.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
-#include <linux/ext2_fs.h>
 #include <libgen.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -25,7 +25,7 @@ typedef struct ext2_dir_entry_2 DIR;
 #define SUPER_USER 0
 // Proc status
 #define FREE 0
-#define BUSY 1
+#define READY 1
 // file system table sizes
 #define NMINODE 100
 #define NMTABLE 10
@@ -45,7 +45,6 @@ struct Proc *next;
 int pid;
 int uid;
 int gid;
-320 11 EXT2 File System
 int ppid;
 int status;
 struct minode *cwd;
@@ -61,20 +60,14 @@ int mounted; // mounted flag
 struct mount *mntPtr; // mount table pointer
 // int lock; // ignored for simple FS
 }MINODE;
-// Open file Table // opened file instance
-typedef struct oft{
-int mode; // mode of opened file
-int refCount; // number of PROCs sharing this instance
-MINODE *minodePtr; // pointer to minode of file
-int offset; // byte offset for R|W
-}OFT;
+
 // Mount Table structure
 typedef struct mtable{
 int dev; // device number; 0 for FREE
 int ninodes; // from superblock
 int nblocks;
-int free_blocks // from superblock and GD
-int free_inodes
+int free_blocks; // from superblock and GD
+int free_inodes;
 int bmap; // from group descriptor
 int imap;
 int iblock; // inodes start block
@@ -83,4 +76,5 @@ char devName[64]; //device name
 char mntName[64]; // mount point DIR name
 }MTABLE;
 
-#endif
+
+#endif // TYPE_H

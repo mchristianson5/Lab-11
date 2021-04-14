@@ -1,4 +1,6 @@
 /************* cd_ls_pwd.c file **************/
+#include "globals.h"
+#include "cd_ls_pwd.h"
 
 int chdir(char *pathname)
 {
@@ -50,6 +52,6 @@ char *pwd(MINODE *wd)
         printf("pwd: READ HOW TO pwd in textbook!!!!\n");
         if (wd == root) {
                 printf("/\n");
-                return;
+                return "";
         }
 }

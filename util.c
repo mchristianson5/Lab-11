@@ -1,18 +1,22 @@
 /*********** util.c file ****************/
 
 #include <ext2fs/ext2_fs.h>
-#include <fctnl.h>
+#include <fcntl.h>
 #include <libgen.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include "type.h"
+#include "util.h"
+#include <unistd.h>
+#include <time.h>
+#include <stdint.h>
+
 
 MINODE minode[NMINODE];
 MINODE *root;
 PROC proc[NPROC], *running;
-MOUNT mtable[NMTABLE];
 char gpath[256];
 char *name[64]; // token string pointers
 int n, fd, dev;
@@ -22,10 +26,15 @@ char pathname[256];
 char cwd[256];
 char gline[256]; // holds token strings, each pointed by a name[i]
 int nname;       // number of token strings
+int iblock;
 
-int get_block(int dev, int blk, char *buf) {
-  lseek(dev, (long)blk * BLKSIZE, 0);
-  read(dev, buf, BLKSIZE);
+
+
+
+int get_block(int dev, int blk, char *buf)
+{
+        lseek(dev, (long)blk * BLKSIZE, 0);
+        read(dev, buf, BLKSIZE);
 }
 int put_block(int dev, int blk, char *buf) {
   lseek(dev, (long)blk * BLKSIZE, 0);
@@ -54,8 +63,8 @@ MINODE *iget(int dev, int ino) {
   int i, block, offset;
   char buf[BLKSIZE];
   // serach in-memory minodes first
-  for (i = 0; i < NMINODES; i++) {
-    mip = &MINODE[i];
+  for (i = 0; i < NMINODE; i++) {
+    mip = &minode[i];
     if (mip->refCount && (mip->dev == dev) && (mip->ino == ino)) {
       mip->refCount++;
       return mip;
@@ -63,7 +72,13 @@ MINODE *iget(int dev, int ino) {
   }
 
   // needed INODE=(dev,ino) not in memory
-  mip = mialloc(); // allocate a FREE minode
+  for(i = 0; i < NMINODE; i++){
+    mip = &minode[i];
+    if(mip->refCount == 0){
+      mip->refCount = 1;
+      break;
+    }
+  }
   mip->dev = dev;
   mip->ino = ino;                 // assign to (dev, ino)
   block = (ino - 1) / 8 + iblock; // disk block containing this inode
@@ -75,7 +90,7 @@ MINODE *iget(int dev, int ino) {
   mip->refCount = 1;
   mip->mounted = 0;
   mip->dirty = 0;
-  mip->mountptr = 0;
+  mip->mntPtr = 0;
   printf("Inside iget: ino: %d, block: %d, offset:%d\n", ino, block, offset);
   return mip;
 }
@@ -101,7 +116,7 @@ void iput(MINODE *mip) {
   ip = (INODE *)buf + offset;      // ip points at INODE
   *ip = mip->INODE;                // copy INODE to inode in block
   put_block(mip->dev, block, buf); // write back to disk
-  midalloc(mip);                   // mip->refCount = 0;
+  mip->dirty = 0;
 }
 
 int search(MINODE *mip, char *name) {
@@ -140,7 +155,7 @@ int getino(char *pathname) {
   if (strcmp(pathname, "/") == 0) {
     return 2; // return root ino=2
   }
-  if (pathname[0] == ’/’)
+  if (pathname[0] == "/")
     mip = root; // if absolute pathname: start from root
   else
     mip = running->cwd;                // if relative pathname: start from CWD

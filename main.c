@@ -1,34 +1,11 @@
 /****************************************************************************
  *                   KCW testing ext2 file system                            *
  *****************************************************************************/
-#include <ext2fs/ext2_fs.h>
-#include <fcntl.h>
-#include <libgen.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <time.h>
+#include "util.h"
+#include "cd_ls_pwd.h"
 
+#include "globals.h"
 #include "type.h"
-
-// globals
-MINODE minode[NMINODE];
-MINODE *root;
-
-PROC proc[NPROC], *running;
-
-char gpath[128]; // global for tokenized components
-char *name[32]; // assume at most 32 components in pathname
-int n; // number of component strings
-
-int fd, dev;
-int nblocks, ninodes, bmap, imap, inode_start;
-
-MINODE *iget();
-
-//#include "util.c"
-#include "cd_ls_pwd.c"
 
 int init()
 {
@@ -43,7 +20,7 @@ int init()
                 mip->dev = mip->ino = 0;
                 mip->refCount = 0;
                 mip->mounted = 0;
-                mip->mptr = 0;
+                mip->mntPtr = 0;
         }
         for (i = 0; i < NPROC; i++) {
                 p = &proc[i];
@@ -54,6 +31,18 @@ int init()
                 for (j = 0; j < NFD; j++)
                         p->fd[j] = 0;
         }
+}
+
+int quit()
+{
+        int i;
+        MINODE *mip;
+        for (i = 0; i < NMINODE; i++) {
+                mip = &minode[i];
+                if (mip->refCount > 0)
+                        iput(mip);
+        }
+        exit(0);
 }
 
 // load root INODE and set root pointer to it
@@ -133,16 +122,4 @@ int main(int argc, char *argv[])
                 if (strcmp(cmd, "quit") == 0)
                         quit();
         }
-}
-
-int quit()
-{
-        int i;
-        MINODE *mip;
-        for (i = 0; i < NMINODE; i++) {
-                mip = &minode[i];
-                if (mip->refCount > 0)
-                        iput(mip);
-        }
-        exit(0);
 }
