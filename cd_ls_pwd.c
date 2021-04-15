@@ -43,7 +43,7 @@ int ls_file(MINODE *mip, char *name)
         char *time = ctime(&atime);
         time[strlen(time) - 1] = '\0';
         get_mode_string(mip->INODE.i_mode);
-        printf("%s %d %d %s %s \n", mode_buffer, mip->refCount, mip->INODE.i_size, time, name);
+        printf("%s %d %d %s %s \n", mode_buffer, mip->INODE.i_links_count, mip->INODE.i_size, time, name);
         return 0;
 }
 
@@ -86,11 +86,13 @@ int ls_dir(MINODE *mip)
 
 int ls(char *pathname)
 {
+        int ino = 0;
         printf("ls %s\n", pathname);
         printf("ls CWD only! YOU do it for ANY pathname\n");
         if (strcmp(pathname, "") == 0)
-                strcpy(pathname, "/");
-        int ino = getino(pathname);
+                ino = running->cwd->ino;
+        else
+                ino = getino(pathname);
         MINODE *mip = iget(dev, ino);
         ls_dir(iget(dev, ino));
         iput(mip);

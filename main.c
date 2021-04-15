@@ -117,9 +117,6 @@ int main(int argc, char *argv[])
                 sscanf(line, "%s %s", cmd, pathname);
                 printf("cmd=%s pathname=%s\n", cmd, pathname);
 
-                if (strcmp(pathname, "") == 0)
-                        strcpy(pathname, "/");
-
                 if (strcmp(cmd, "ls") == 0)
                         ls(pathname);
                 if (strcmp(cmd, "cd") == 0)
