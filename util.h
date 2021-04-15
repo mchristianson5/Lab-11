@@ -1,6 +1,7 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+#include "type.h"
 #include <fcntl.h>
 #include <libgen.h>
 #include <stdio.h>
@@ -9,7 +10,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <time.h>
-#include "type.h"
 typedef unsigned int u32;
 
 int get_block(int dev, int blk, char *buf);
@@ -21,5 +21,7 @@ int search(MINODE *mip, char *name);
 int getino(char *pathname);
 int findmyname(MINODE *parent, u32 myino, char *myname);
 int findino(MINODE *mip, u32 *myino);
+MINODE *mialloc();
+int midalloc(MINODE *mip);
 
 #endif // UTIL_H

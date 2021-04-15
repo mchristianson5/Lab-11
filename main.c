@@ -1,8 +1,8 @@
 /****************************************************************************
  *                   KCW testing ext2 file system                            *
  *****************************************************************************/
-#include "util.h"
 #include "cd_ls_pwd.h"
+#include "util.h"
 
 #include "globals.h"
 #include "type.h"
@@ -31,6 +31,7 @@ int init()
                 for (j = 0; j < NFD; j++)
                         p->fd[j] = 0;
         }
+        return 0;
 }
 
 int quit()
@@ -50,12 +51,12 @@ int mount_root()
 {
         printf("mount_root()\n");
         root = iget(dev, 2);
+        return 0;
 }
 
 char *disk = "diskimage";
 int main(int argc, char *argv[])
 {
-        int ino;
         char buf[BLKSIZE];
         char line[128], cmd[32], pathname[128];
 
@@ -81,7 +82,6 @@ int main(int argc, char *argv[])
         printf("EXT2 FS OK\n");
         ninodes = sp->s_inodes_count;
         nblocks = sp->s_blocks_count;
-
 
         get_block(dev, 2, buf);
         gp = (GD *)buf;
@@ -116,9 +116,6 @@ int main(int argc, char *argv[])
 
                 sscanf(line, "%s %s", cmd, pathname);
                 printf("cmd=%s pathname=%s\n", cmd, pathname);
-
-                if (strcmp(pathname, "") == 0)
-                        strcpy(pathname, "/");
 
                 if (strcmp(cmd, "ls") == 0)
                         ls(pathname);
