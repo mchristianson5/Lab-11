@@ -1,6 +1,7 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+#include "type.h"
 #include <fcntl.h>
 #include <libgen.h>
 #include <stdio.h>
@@ -9,7 +10,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <time.h>
-#include "type.h"
 typedef unsigned int u32;
 
 int get_block(int dev, int blk, char *buf);

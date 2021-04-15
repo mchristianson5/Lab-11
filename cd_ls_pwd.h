@@ -3,13 +3,14 @@
 
 #include "util.h"
 
-#define DIR_MODE 4
+#define DIR_MODE_INO 4
 
 int chdir(char *pathname);
 int ls_file(MINODE *mip, char *name);
 int ls_dir(MINODE *mip);
 int ls(char *pathname);
 char *pwd(MINODE *wd);
+int rpwd(MINODE *wd);
 int is_dir(INODE *ino);
 
 #endif // CD_LS_PWD_H
