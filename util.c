@@ -23,7 +23,6 @@ char pathname[256];
 char cwd[256];
 char gline[256]; // holds token strings, each pointed by a name[i]
 int nname; // number of token strings
-int iblock;
 
 int get_block(int dev, int blk, char *buf)
 {
@@ -72,16 +71,10 @@ MINODE *iget(int dev, int ino)
         }
 
         // needed INODE=(dev,ino) not in memory
-        for (i = 0; i < NMINODE; i++) {
-                mip = &minode[i];
-                if (mip->refCount == 0) {
-                        mip->refCount = 1;
-                        break;
-                }
-        }
+        mip = mialloc();
         mip->dev = dev;
         mip->ino = ino; // assign to (dev, ino)
-        block = (ino - 1) / 8 + iblock; // disk block containing this inode
+        block = (ino - 1) / 8 + inode_start; // disk block containing this inode
         offset = (ino - 1) % 8; // which inode in this block
         get_block(dev, block, buf);
         ip = (INODE *)buf + offset;
@@ -110,7 +103,7 @@ void iput(MINODE *mip)
         if (mip->dirty == 0)
                 return; // no need to write back
         // write INODE back to disk
-        block = (mip->ino - 1) / 8 + iblock;
+        block = (mip->ino - 1) / 8 + inode_start;
         offset = (mip->ino - 1) % 8;
         // get block containing this inode
         get_block(mip->dev, block, buf);
@@ -243,3 +236,25 @@ int findino(MINODE *mip, u32 *myino) // myino = ino of . return ino of ..
         }
         return 0;
 }
+
+MINODE* mialloc()
+{
+        MINODE *mp = NULL;
+        for (int i = 0; i < NMINODE; i++) {
+                 mp = &minode[i];
+                 if (mp->refCount == 0) {
+                         mp->refCount = 1;
+                         return mp;
+                 }
+        }
+        printf("No free nodes\n");
+        return NULL;
+}
+
+int midalloc(MINODE *mip)
+{
+        mip->refCount = 0;
+        return 0;
+}
+
+
