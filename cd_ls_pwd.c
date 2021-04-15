@@ -2,6 +2,20 @@
 #include "cd_ls_pwd.h"
 #include "globals.h"
 
+static char mode_buffer[128];
+static char *t1 = "xwrxwrxwr-------"; // modes
+static char *t2 = "----------------"; // dashes
+
+static void get_mode_string(int mode)
+{
+        for (int i = 8; i >= 0; i--) {
+                if (mode & (1 << i)) // print r|w|x
+                        printf("%c", t1[i]);
+                else
+                        printf("%c", t2[i]); // or print -
+        }
+}
+
 int chdir(char *pathname)
 {
         printf("chdir %s\n", pathname);
@@ -26,7 +40,10 @@ int chdir(char *pathname)
 int ls_file(MINODE *mip, char *name)
 {
         const long atime = mip->INODE.i_atime;
-        printf("%d %d %s %s\n", mip->INODE.i_mode, mip->INODE.i_size, ctime(&atime), name);
+        char *time = ctime(&atime);
+        time[strlen(time) - 1] = '\0';
+        get_mode_string(mip->INODE.i_mode);
+        printf("%s %d %d %s %s \n", mode_buffer, mip->refCount, mip->INODE.i_size, time, name);
         return 0;
 }
 
@@ -37,6 +54,7 @@ int ls_dir(MINODE *mip)
         char buf[BLKSIZE], temp[256];
         DIR *dp;
         char *cp;
+        MINODE *dir_mip = NULL;
 
         // Assume DIR has only one data block i_block[0]
         for (int i = 0; i < 12; i++) {
@@ -47,11 +65,17 @@ int ls_dir(MINODE *mip)
                 cp = buf;
 
                 while (cp < buf + BLKSIZE) {
+                        memset(temp, 0, 256);
                         strncpy(temp, dp->name, dp->name_len);
                         temp[dp->name_len] = '\0';
 
                         // printf("[%d %s]  ", dp->inode, temp); // print [inode# name]
-                        ls_file(mip, temp);
+                        dir_mip = iget(dev, dp->inode);
+                        ls_file(dir_mip, temp);
+
+                        iput(dir_mip);
+                        dir_mip = NULL;
+
                         cp += dp->rec_len;
                         dp = (DIR *)cp;
                 }
@@ -67,7 +91,9 @@ int ls(char *pathname)
         if (strcmp(pathname, "") == 0)
                 strcpy(pathname, "/");
         int ino = getino(pathname);
+        MINODE *mip = iget(dev, ino);
         ls_dir(iget(dev, ino));
+        iput(mip);
         return 0;
 }
 

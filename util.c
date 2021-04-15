@@ -84,7 +84,7 @@ MINODE *iget(int dev, int ino)
         mip->mounted = 0;
         mip->dirty = 0;
         mip->mntPtr = 0;
-        printf("Inside iget: ino: %d, block: %d, offset:%d\n", ino, block, offset);
+        // printf("Inside iget: ino: %d, block: %d, offset:%d\n", ino, block, offset);
         return mip;
 }
 
