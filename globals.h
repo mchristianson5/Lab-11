@@ -21,4 +21,6 @@ extern GD *gp;
 extern INODE *ip;
 extern DIR *dp;
 
+extern int nname; // number of token strings
+
 #endif // GLOBALS_H

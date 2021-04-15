@@ -99,19 +99,25 @@ int ls(char *pathname)
         return 0;
 }
 
-char *pwd(MINODE *wd)
+int pwd(MINODE *wd)
 {
         if (wd->ino == root->ino) {
                 printf("/\n");
-                return "";
         } else {
-                rpwd(wd);
+                char buffer[256];
+                rpwd(wd, buffer);
+                tokenize(buffer);
+                printf("/");
+                for (int i = nname - 1; i >= 0; i--) {
+                        printf("%s", name[i]);
+                        printf("/");
+                }
                 printf("\n");
         }
-        return "";
+        return 0;
 }
 
-int rpwd(MINODE *wd)
+int rpwd(MINODE *wd, char *buffer)
 {
         char buf[BLKSIZE];
         DIR *temp;
@@ -123,7 +129,7 @@ int rpwd(MINODE *wd)
         temp = (DIR *)buf;
         char *cp = buf;
         if(wd->ino == root->ino){
-                return;
+                return 0;
         }
         while (cp < buf + BLKSIZE) {
                 if (strcmp(temp->name, "..") == 0) {
@@ -144,13 +150,16 @@ int rpwd(MINODE *wd)
                 strcpy(dirname, temp->name);
                 dirname[temp->name_len] = 0;
                 if (my_ino == temp->inode) {
+                        if (strcmp(dirname, "/") != 0)
+                                strcat(buffer, "/");
+                        strcat(buffer, dirname);
                         break;
                 }
                 cp = (char *)cp + temp->rec_len; // advancing cp
                 temp = (DIR *)cp;
         }
-        rpwd(pip);
-        
+        return rpwd(pip, buffer);
+
 }
 
 int is_dir(INODE *ino)

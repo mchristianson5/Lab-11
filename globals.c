@@ -18,3 +18,5 @@ SUPER *sp;
 GD *gp;
 INODE *ip;
 DIR *dp;
+
+int nname; // number of token strings

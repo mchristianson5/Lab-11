@@ -22,7 +22,7 @@ char cmd[64];
 char pathname[256];
 char cwd[256];
 char gline[256]; // holds token strings, each pointed by a name[i]
-int nname; // number of token strings
+
 
 int get_block(int dev, int blk, char *buf)
 {
