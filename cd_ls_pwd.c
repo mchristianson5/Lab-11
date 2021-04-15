@@ -103,7 +103,6 @@ char *pwd(MINODE *wd)
                 printf("/\n");
                 return "";
         } else {
-                printf("HEY");
                 rpwd(wd);
                 printf("\n");
         }
@@ -121,6 +120,9 @@ int rpwd(MINODE *wd)
         get_block(wd->dev, wd->INODE.i_block[0], buf);
         temp = (DIR *)buf;
         char *cp = buf;
+        if(wd->ino == root->ino){
+                return;
+        }
         while (cp < buf + BLKSIZE) {
                 if (strcmp(temp->name, "..") == 0) {
                         parent = temp->inode;
@@ -146,7 +148,7 @@ int rpwd(MINODE *wd)
                 temp = (DIR *)cp;
         }
         rpwd(pip);
-        return 0;
+        
 }
 
 int is_dir(INODE *ino)
